@@ -244,10 +244,18 @@ def get_embedding_model():
     return SentenceTransformer(model_name)
 
 def get_client():
-    """Create a Gemini API client for answer generation only."""
-    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    """Create a Gemini API client using local or cloud configuration."""
+    api_key = (
+        os.getenv("GEMINI_API_KEY", "").strip()
+        or str(st.secrets.get("GEMINI_API_KEY", "")).strip()
+    )
+
     if not api_key:
-        raise RuntimeError("GEMINI_API_KEY is missing. Add it to your .env file.")
+        raise RuntimeError(
+            "GEMINI_API_KEY is missing. Configure it in .env "
+            "locally or in Streamlit Cloud Secrets."
+        )
+
     return genai.Client(api_key=api_key)
 
 def embed_texts(texts):
