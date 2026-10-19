@@ -243,17 +243,20 @@ def get_embedding_model():
     model_name = os.getenv("HF_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
     return SentenceTransformer(model_name)
 
-def get_client():
-    """Create a Gemini API client using local or cloud configuration."""
-    api_key = (
-        os.getenv("GEMINI_API_KEY", "").strip()
-        or str(st.secrets.get("GEMINI_API_KEY", "")).strip()
-    )
 
-    if not api_key:
+def get_client():
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+
+    if not api_key or api_key == "your_actual_gemini_api_key":
+        try:
+            api_key = str(st.secrets["GEMINI_API_KEY"]).strip()
+        except (KeyError, FileNotFoundError):
+            api_key = ""
+
+    if not api_key or api_key == "your_actual_gemini_api_key":
         raise RuntimeError(
-            "GEMINI_API_KEY is missing. Configure it in .env "
-            "locally or in Streamlit Cloud Secrets."
+            "Gemini API key is missing or is still a placeholder. "
+            "Check your .env file or Streamlit Cloud Secrets."
         )
 
     return genai.Client(api_key=api_key)
